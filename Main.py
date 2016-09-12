@@ -17,6 +17,7 @@ def log(message, answer):
     print(answer)
 
 
+print('hello')
 markup = types.ReplyKeyboardMarkup(resize_keyboard=True)
 markup.row('FAQ', 'Error', 'Questions', 'Contacts')
 FAQlist = parsing.parseFAQ()

@@ -16,6 +16,7 @@ def parseFAQ():
 def main():
     test()
     print('test')
+    print('hello')
 
 def test():
     '''
