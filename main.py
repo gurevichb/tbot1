@@ -11,10 +11,11 @@ logging.basicConfig(format='%(asctime)s - %(name)s - %(levelname)s - %(message)s
                     level=logging.INFO)
 logger = logging.getLogger(__name__)
 
-# TODO: thread.  parse_knowledge_links, parse_error_links
+# TODO: thread:  parse_knowledge_links, parse_error_links, parse_contact
 faq_list = parsing.parse_faq()
-#
-START, FAQ, ERROR = range(3)
+contacts_text = parsing.parse_contact()
+contacts_how_reach = parsing.parse_how_to_reach()
+CONTACTS, FAQ, ERROR = range(3)
 
 
 def start(bot, update):
@@ -55,19 +56,42 @@ def error_handler_cycle(bot, update):
     list_of_names_and_links = parsing.search_in_page(update.message.text)
     logger.info('Found: ' + str(list_of_names_and_links))
     inline_error_keyboard = [[]]
-    if list_of_names_and_links:
+    if list_of_names_and_links and len(list_of_names_and_links) < 15:
+        logger.info('Found: ' + str(len(list_of_names_and_links)))
         for record in list_of_names_and_links:
             inline_error_keyboard.append([InlineKeyboardButton(text=str(record[0]),
                                                                url=record[1])])
         links_markup = InlineKeyboardMarkup(inline_error_keyboard)
+
+        bot.sendMessage(update.message.chat_id, text='Найдено:', reply_markup=links_markup, resize_keyboard=True)
         bot.send_message(update.message.chat_id, text='Повторить?',
                          reply_markup=ReplyKeyboardMarkup([['Повторить', 'Назад']], resize_keyboard=True))
-        bot.sendMessage(update.message.chat_id, text='Найдено:', reply_markup=links_markup)
     else:
         bot.send_message(update.message.chat_id, text='Не найдено, Повторить?',
                          reply_markup=ReplyKeyboardMarkup([['Повторить', 'Назад']], resize_keyboard=True))
 
     return ERROR
+
+
+def contacts_handler(bot, update):
+    logger.info('contact_handler')
+    contacts_keyboard = [[Constants.contact_address_button,
+                          Constants.contact_reach_button,
+                          Constants.contact_back_button]]
+    bot.send_message(update.message.chat_id, text=contacts_text,
+                     reply_markup=ReplyKeyboardMarkup(contacts_keyboard, resize_keyboard=True),
+                     parse_mode='Markdown')
+    return CONTACTS
+
+
+def contacts_reach_handler(bot, update):
+    logger.info('contact_reach_handler')
+    contacts_keyboard = [[Constants.contact_address_button,
+                          Constants.contact_reach_button,
+                          Constants.contact_back_button]]
+    bot.send_message(update.message.chat_id, text=contacts_how_reach,
+                     reply_markup=ReplyKeyboardMarkup(contacts_keyboard, resize_keyboard=True),
+                     parse_mode='Markdown')
 
 
 def main():
@@ -79,15 +103,21 @@ def main():
         entry_points=[CommandHandler('start', start),
                       RegexHandler('Вопрос-ответ', faq_handler),
                       CallbackQueryHandler(callback_faq),
-                      RegexHandler('Ошибки', error_code_handler)],
+                      RegexHandler(Constants.error_button, error_code_handler),
+                      RegexHandler(Constants.contacts_button, contacts_handler)],
 
         states={
 
             ERROR: [RegexHandler('Назад', start),
                     RegexHandler('Повторить', error_code_handler),
-                    RegexHandler('.{0,10}', error_handler_cycle)]
+                    RegexHandler('.{0,10}', error_handler_cycle)],
+            CONTACTS: [RegexHandler(Constants.contact_back_button, start),
+                       RegexHandler(Constants.contact_address_button, contacts_handler),
+                       RegexHandler(Constants.contact_reach_button, contacts_reach_handler)]
         },
         allow_reentry=True,
+
+        fallbacks=RegexHandler('.{0,10}', start)
     )
     dp.add_handler(conv_handler)
     updater.start_polling()
