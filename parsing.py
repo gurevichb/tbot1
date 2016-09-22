@@ -5,6 +5,8 @@ from constants import Constants
 import re
 import testing
 import logging
+import updating
+
 logging.basicConfig(format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
                     level=logging.INFO)
 logger = logging.getLogger(__name__)
@@ -52,21 +54,22 @@ def parse_knowledge_links():
     Должна обновляться с некоторой переодичностью.
     Обновляет список ссылок Constants.knowledge_pages.
     """
-    Constants.knowledge_error_pages = []
+    knowledge_links = []
     html = request.urlopen(Constants.site_knowledge_base).read()
     soup = BeautifulSoup(html, 'html.parser')
     for href in soup.find_all('span', class_='child-display'):
-        Constants.knowledge_pages.append(Constants.site_knowledge_base + href.text.strip()[10:])
-    logger.info(str(len(Constants.knowledge_pages)) + ' links to knowledge articles are updated')
+        knowledge_links.append(Constants.site_knowledge_base + href.text.strip()[10:])
+    logger.info(str(len(knowledge_links)) + ' links to knowledge articles are updated')
+    return knowledge_links
 
 
-def parse_error_links():
+def parse_error_links(knowledge_pages):
     """Функция выделяет те страницы, среди которых содержатся коды ошибок.
         Должна обновляться с некоторой переодичностью
         Обновляет список ссылок Constants.knowledge_error_pages
         """
-    Constants.knowledge_error_pages = []
-    for page in Constants.knowledge_pages:
+    error_code_links = []
+    for page in knowledge_pages:
         try:
             html = urllib.request.urlopen(page).read()
         except error.URLError:
@@ -75,12 +78,13 @@ def parse_error_links():
             return
         html_page = BeautifulSoup(html, 'html.parser')
         if re.search('Код ошибки', html_page.text):
-            Constants.knowledge_error_pages.append(page)
-    logger.info(str(len(Constants.knowledge_error_pages)) +
+            error_code_links.append(page)
+    logger.info(str(len(error_code_links)) +
                 ' links on articles with an error code are added')
+    return error_code_links
 
 
-def search_in_page(error_code):
+def search_in_page(error_code, error_links):
     """
     Из Constants.knowledge_error_pages по коду ошибки (или часть кода ошибки)
     выделяется код ошибки и ссылка на статью. Формируется список из списков [код ошибки, ссылка]
@@ -89,7 +93,7 @@ def search_in_page(error_code):
     names_and_links = []
     list_of_names_and_links = []
     logger.info('Input regexp expr: ' + str(error_code))
-    for link_with_error_page in testing.debug_error_links:
+    for link_with_error_page in error_links:
         try:
             html = urllib.request.urlopen(link_with_error_page).read()
         except error.URLError:
@@ -102,5 +106,6 @@ def search_in_page(error_code):
             names_and_links.append(link_with_error_page)
             list_of_names_and_links.append(names_and_links)
         names_and_links = []
+    for list in list_of_names_and_links: logger.info(str(list))
     logger.info('Search is finished')
     return list_of_names_and_links

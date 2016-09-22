@@ -1,22 +1,21 @@
 from telegram import ReplyKeyboardMarkup, InlineKeyboardButton, InlineKeyboardMarkup, ReplyKeyboardHide
-from telegram.ext import (Updater, CommandHandler, MessageHandler, Filters, RegexHandler,
+from telegram.ext import (Updater, CommandHandler, RegexHandler,
                           ConversationHandler, CallbackQueryHandler)
 from constants import Constants
 import logging
 import parsing
-import testing
-import time
 
+from updating import UpdateData
 logging.basicConfig(format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
                     level=logging.INFO)
 logger = logging.getLogger(__name__)
 
-# TODO: thread:  parse_knowledge_links, parse_error_links, parse_contact
-faq_list = parsing.parse_faq()
-contacts_text = parsing.parse_contact()
-contacts_how_reach = parsing.parse_how_to_reach()
 CONTACTS, FAQ, ERROR = range(3)
-
+update_data = UpdateData()
+faq_list = update_data.get_faq_list()
+contacts_text = update_data.get_contacts_text()
+contacts_how_reach = update_data.get_contacts_how_reach()
+error_links = update_data.get_knowledge_error_links()
 
 def start(bot, update):
     main_keyboard = [[Constants.faq_button, Constants.error_button,
@@ -53,8 +52,7 @@ def error_code_handler(bot, update):
 
 
 def error_handler_cycle(bot, update):
-    list_of_names_and_links = parsing.search_in_page(update.message.text)
-    logger.info('Found: ' + str(list_of_names_and_links))
+    list_of_names_and_links = parsing.search_in_page(update.message.text, error_links)
     inline_error_keyboard = [[]]
     if list_of_names_and_links and len(list_of_names_and_links) < 15:
         logger.info('Found: ' + str(len(list_of_names_and_links)))
