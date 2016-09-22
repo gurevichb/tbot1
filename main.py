@@ -6,6 +6,7 @@ import logging
 import parsing
 
 from updating import UpdateData
+
 logging.basicConfig(format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
                     level=logging.INFO)
 logger = logging.getLogger(__name__)
@@ -16,6 +17,7 @@ faq_list = update_data.get_faq_list()
 contacts_text = update_data.get_contacts_text()
 contacts_how_reach = update_data.get_contacts_how_reach()
 error_links = update_data.get_knowledge_error_links()
+
 
 def start(bot, update):
     main_keyboard = [[Constants.faq_button, Constants.error_button,
@@ -65,7 +67,7 @@ def error_handler_cycle(bot, update):
         bot.send_message(update.message.chat_id, text='Повторить?',
                          reply_markup=ReplyKeyboardMarkup([['Повторить', 'Назад']], resize_keyboard=True))
     else:
-        bot.send_message(update.message.chat_id, text='Не найдено, Повторить?',
+        bot.send_message(update.message.chat_id, text='Не найдено, повторить?',
                          reply_markup=ReplyKeyboardMarkup([['Повторить', 'Назад']], resize_keyboard=True))
 
     return ERROR
@@ -115,7 +117,7 @@ def main():
         },
         allow_reentry=True,
 
-        fallbacks=RegexHandler('.{0,10}', start)
+        fallbacks=[RegexHandler('.{0,10}', start)]
     )
     dp.add_handler(conv_handler)
     updater.start_polling()
