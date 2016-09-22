@@ -82,8 +82,6 @@ def search_in_page(error_code):
     """
     Из Constants.knowledge_error_pages по коду ошибки (или часть кода ошибки)
     выделяется код ошибки и ссылка на статью. Формируется список из списков [код ошибки, ссылка]
-    :param error_code:
-    :return:
     """
     names_and_links = []
     list_of_names_and_links = []

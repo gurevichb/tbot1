@@ -1,90 +1,124 @@
-import telebot
-from telebot.types import InlineKeyboardButton, InlineKeyboardMarkup
-from telebot import types
+#!/usr/bin/env python
+# -*- coding: utf-8 -*-
+#
+# Simple Bot to reply to Telegram messages
+# This program is dedicated to the public domain under the CC0 license.
+"""
+This Bot uses the Updater class to handle the bot.
+First, a few callback functions are defined. Then, those functions are passed to
+the Dispatcher and registered at their respective places.
+Then, the bot is started and runs until we press Ctrl-C on the command line.
+Usage:
+Example of a bot-user conversation using ConversationHandler.
+Send /start to initiate the conversation.
+Press Ctrl-C on the command line or send a signal to the process to stop the
+bot.
+"""
+
+from telegram import ReplyKeyboardMarkup, InlineKeyboardButton, InlineKeyboardMarkup
+from telegram.ext import (Updater, CommandHandler, MessageHandler, Filters, RegexHandler,
+                          ConversationHandler, CallbackQueryHandler)
 from constants import Constants
+import logging
 import parsing
-import logger
 
-bot = telebot.TeleBot(Constants.token)
-main_keyboard = types.ReplyKeyboardMarkup(resize_keyboard=True)
-main_keyboard.row(Constants.faq_button, Constants.error_button,
-                  Constants.questions_button, Constants.contacts_button)
+import testing
+import time
 
+logging.basicConfig(format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
+                    level=logging.INFO)
+logger = logging.getLogger(__name__)
 
-@bot.message_handler(commands=['start'])
-def handle_start(message):
-    bot.send_message(message.from_user.id, Constants.start_message, reply_markup=main_keyboard)
-    logger.info(str(message.from_user.id) + ' ' + message.text)
-    logger.info('from id: %d, name: %s text: %s' % (message.from_user.id, 'A', message.text))
-
-
-def faq_handler(message):
-    if message.text == Constants.faq_button:
-        keyboard = InlineKeyboardMarkup()
-        try:
-            faq_list = parsing.parse_faq()
-        except parsing.error.URLError:
-            bot.send_message(message.chat.id, text='Нет доступа.')
-            logger.warning('Is not access to site: ' + Constants.site_faq)
-            return
-        for record in faq_list:
-            keyboard.add(InlineKeyboardButton(text=str(record[0]),
-                                              callback_data=str(faq_list.index(record))))
-        bot.send_message(message.chat.id, text=Constants.faq_button, reply_markup=keyboard)
-
-        @bot.callback_query_handler(func=lambda call: True)
-        def callback_inline(call):
-            record_index = int(call.data)
-            question = '*' + faq_list[record_index][0] + '*' + '\n\n'
-            answer = faq_list[record_index][1]
-            bot.edit_message_text(chat_id=call.message.chat.id, message_id=call.message.message_id,
-                                  text=question + answer, parse_mode='Markdown')
+# TODO: thread.  parse_knowledge_links, parse_error_links
+faq_list = parsing.parse_faq()
+#
+FAQ, ERROR = range(2)
 
 
-def contacts_handler(message):
-    try:
-        contacts_text = parsing.parse_contact()
-        how_to_reach_text = parsing.parse_how_to_reach()
-    except parsing.error.URLError:
-        bot.send_message(message.chat.id, text=Constants.error_message)
-        logger.warning('Is not access to site: ' + Constants.site_contacts + ' parsing cancelled')
-        return
-
-    if message.text == Constants.contacts_button:
-        contacts_keyboard = types.ReplyKeyboardMarkup(resize_keyboard=True)
-        contacts_keyboard.row(Constants.contact_address_button,
-                              Constants.contact_reach_button,
-                              Constants.contact_back_button)
-        bot.send_message(message.from_user.id, text=contacts_text,
-                         reply_markup=contacts_keyboard, parse_mode='Markdown')
-
-    if message.text == Constants.contact_address_button:
-        bot.send_message(message.from_user.id, text=contacts_text, parse_mode='Markdown')
-    if message.text == Constants.contact_reach_button:
-        bot.send_message(message.from_user.id, text=how_to_reach_text, parse_mode='Markdown')
-    if message.text == Constants.contact_back_button:
-        handle_start(message)
+def start(bot, update):
+    main_keyboard = [[Constants.faq_button, Constants.error_button,
+                      Constants.questions_button, Constants.contacts_button]]
+    bot.send_message(update.message.chat_id, text=Constants.start_message,
+                     reply_markup=ReplyKeyboardMarkup(main_keyboard, resize_keyboard=True))
+    logger.info('from id: %d, text: %s' % (update.message.from_user.id, update.message.text))
 
 
-def error_code_handler(message):
-    if message.text == Constants.error_button:
-        contacts_keyboard = types.ReplyKeyboardMarkup(resize_keyboard=True)
-        contacts_keyboard.row(Constants.contact_back_button)
-        bot.send_message(message.from_user.id, text='Введите номер ошибки',
-                         reply_markup=contacts_keyboard, parse_mode='Markdown')
-        # ?
+def faq_handler(bot, update):
+    keyboard = [[]]
+    for record in faq_list:
+        keyboard.append([InlineKeyboardButton(text=str(record[0]),
+                                              callback_data=str(faq_list.index(record)))])
+    faq_markup = InlineKeyboardMarkup(keyboard)
+    bot.sendMessage(update.message.chat_id, text=Constants.faq_button, reply_markup=faq_markup)
 
 
-@bot.message_handler(content_types=['text'])
-def handle_text(message):
-    faq_handler(message)
-    contacts_handler(message)
-    error_code_handler(message)
+def callback_faq(bot, update):
+    call = update.callback_query
+    question_text = '*' + faq_list[int(call.data)][0] + '*\n\n'
+    answer_text = faq_list[int(call.data)][1]
+    bot.edit_message_text(text=question_text + answer_text,
+                          chat_id=call.message.chat.id,
+                          message_id=call.message.message_id,
+                          parse_mode='Markdown')
+
+
+def error_code_handler(bot, update):
+    print('error_code_handler')
+    bot.sendMessage(chat_id=update.message.chat_id, text='Введите код ошибки:')
+
+
+    # for local_update in bot.getUpdates(offset=update, timeout=10):
+    #     print('hello')
+    #     chat_id = update.message.text
+    #     update = update.update_id + 1
+    #     if local_update.message:
+    #         bot.sendMessage(chat_id=chat_id, text=update.message.text)
+
+    return ERROR
+
+
+def error_handler_cycle(bot, update):
+    print(update.message.text)
+    time.sleep(2)
+    return ERROR
+
+
+def error_handler_cycle_out(bot, update):
+    print('from cycle_out')
+
+
+def cancel(bot, update):
+    user = update.message.from_user
+    logger.info("User %s canceled the conversation." % user.first_name)
+    bot.sendMessage(update.message.chat_id,
+                    text='Bye! I hope we can talk again some day.')
+
+    return ConversationHandler.END
 
 
 def main():
-    bot.polling()
+    updater = Updater(Constants.token)
+
+    # Get the dispatcher to register handlers
+    dp = updater.dispatcher
+
+    conv_handler = ConversationHandler(
+        entry_points=[CommandHandler('start', start),
+                      RegexHandler('Вопрос-ответ', faq_handler),
+                      CallbackQueryHandler(callback_faq),
+                      RegexHandler('Ошибки', error_code_handler)],
+
+        states={
+
+            ERROR: [RegexHandler('.{0,10}', error_handler_cycle),
+                    RegexHandler('Назад', start)]
+        },
+
+        fallbacks=[CommandHandler('cancel', cancel)]
+    )
+    dp.add_handler(conv_handler)
+    updater.start_polling()
 
 
-if __name__ == "__main__":
+if __name__ == '__main__':
     main()
