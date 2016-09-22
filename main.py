@@ -73,7 +73,6 @@ def error_handler_cycle(bot, update):
 def main():
     updater = Updater(Constants.token)
 
-    # Get the dispatcher to register handlers
     dp = updater.dispatcher
 
     conv_handler = ConversationHandler(
