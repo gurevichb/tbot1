@@ -1,11 +1,13 @@
 import urllib
 from urllib import request, error
-import logger
 from bs4 import BeautifulSoup
 from constants import Constants
 import re
 import testing
-
+import logging
+logging.basicConfig(format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
+                    level=logging.INFO)
+logger = logging.getLogger(__name__)
 
 def parse_faq():
     html = urllib.request.urlopen(Constants.site_faq).read()
@@ -82,6 +84,7 @@ def search_in_page(error_code):
     """
     Из Constants.knowledge_error_pages по коду ошибки (или часть кода ошибки)
     выделяется код ошибки и ссылка на статью. Формируется список из списков [код ошибки, ссылка]
+
     """
     names_and_links = []
     list_of_names_and_links = []
@@ -99,4 +102,5 @@ def search_in_page(error_code):
             names_and_links.append(link_with_error_page)
             list_of_names_and_links.append(names_and_links)
         names_and_links = []
+    logger.info('Search is finished')
     return list_of_names_and_links
