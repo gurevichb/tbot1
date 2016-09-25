@@ -4,7 +4,7 @@ from telegram.ext import (Updater, CommandHandler, RegexHandler,
 from constants import Constants
 import logging
 import parsing
-
+import threading
 from updating import UpdateData
 
 logging.basicConfig(format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
@@ -13,10 +13,6 @@ logger = logging.getLogger(__name__)
 
 CONTACTS, FAQ, ERROR = range(3)
 update_data = UpdateData()
-faq_list = update_data.get_faq_list()
-contacts_text = update_data.get_contacts_text()
-contacts_how_reach = update_data.get_contacts_how_reach()
-error_links = update_data.get_knowledge_error_links()
 
 
 def start(bot, update):
@@ -29,6 +25,7 @@ def start(bot, update):
 
 def faq_handler(bot, update):
     keyboard = [[]]
+    faq_list = update_data.get_faq_list()
     for record in faq_list:
         keyboard.append([InlineKeyboardButton(text=str(record[0]),
                                               callback_data=str(faq_list.index(record)))])
@@ -37,6 +34,7 @@ def faq_handler(bot, update):
 
 
 def callback_faq(bot, update):
+    faq_list = update_data.get_faq_list()
     call = update.callback_query
     question_text = '*' + faq_list[int(call.data)][0] + '*\n\n'
     answer_text = faq_list[int(call.data)][1]
@@ -54,6 +52,7 @@ def error_code_handler(bot, update):
 
 
 def error_handler_cycle(bot, update):
+    error_links = update_data.get_knowledge_error_links()
     list_of_names_and_links = parsing.search_in_page(update.message.text, error_links)
     inline_error_keyboard = [[]]
     if list_of_names_and_links and len(list_of_names_and_links) < 15:
@@ -75,6 +74,7 @@ def error_handler_cycle(bot, update):
 
 def contacts_handler(bot, update):
     logger.info('contact_handler')
+    contacts_text = update_data.get_contacts_text()
     contacts_keyboard = [[Constants.contact_address_button,
                           Constants.contact_reach_button,
                           Constants.contact_back_button]]
@@ -86,6 +86,7 @@ def contacts_handler(bot, update):
 
 def contacts_reach_handler(bot, update):
     logger.info('contact_reach_handler')
+    contacts_how_reach = update_data.get_contacts_how_reach()
     contacts_keyboard = [[Constants.contact_address_button,
                           Constants.contact_reach_button,
                           Constants.contact_back_button]]
@@ -99,16 +100,20 @@ def main():
 
     dp = updater.dispatcher
 
+    t2 = threading.Thread(target=update_data.update, args=[60])
+    t2.setDaemon(True)
+    t2.start()
+
     conv_handler = ConversationHandler(
         entry_points=[CommandHandler('start', start),
-                      RegexHandler('Вопрос-ответ', faq_handler),
+                      RegexHandler(Constants.faq_button, faq_handler),
                       CallbackQueryHandler(callback_faq),
                       RegexHandler(Constants.error_button, error_code_handler),
                       RegexHandler(Constants.contacts_button, contacts_handler)],
 
         states={
 
-            ERROR: [RegexHandler('Назад', start),
+            ERROR: [RegexHandler(Constants.contact_back_button, start),
                     RegexHandler('Повторить', error_code_handler),
                     RegexHandler('.{0,10}', error_handler_cycle)],
             CONTACTS: [RegexHandler(Constants.contact_back_button, start),
@@ -121,7 +126,6 @@ def main():
     )
     dp.add_handler(conv_handler)
     updater.start_polling()
-
 
 if __name__ == '__main__':
     main()

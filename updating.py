@@ -2,7 +2,10 @@ import threading
 import time
 import parsing
 import testing
-
+import logging
+logging.basicConfig(format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
+                    level=logging.INFO)
+logger = logging.getLogger(__name__)
 class UpdateData:
     __faq_list = []
     __contacts_text = []
@@ -11,18 +14,22 @@ class UpdateData:
     __knowledge_error_links = []
 
     def __init__(self):
+        pass
+       # self.update()
 
-        self.update()
-
-    def update(self):
-        self.__faq_list = parsing.parse_faq()
-        self.__contacts_text = parsing.parse_contact()
-        self.__contacts_how_reach = parsing.parse_how_to_reach()
-        self.__knowledge_links = parsing.parse_knowledge_links()
-        # 20 seconds
-        self.__knowledge_error_links = parsing.parse_error_links(self.__knowledge_links)
-        #
-        # self.__knowledge_error_links = testing.debug_error_links
+    def update(self, update_time):
+        while True:
+            logger.info('updating has begun')
+            self.__faq_list = parsing.parse_faq()
+            self.__contacts_text = parsing.parse_contact()
+            self.__contacts_how_reach = parsing.parse_how_to_reach()
+            self.__knowledge_links = parsing.parse_knowledge_links()
+            # 20 seconds
+            self.__knowledge_error_links = parsing.parse_error_links(self.__knowledge_links)
+            #
+            self.__knowledge_error_links = testing.debug_error_links
+            logger.info('updating has ended')
+            time.sleep(update_time)
 
     def get_faq_list(self):
         return self.__faq_list

@@ -3,9 +3,8 @@ from urllib import request, error
 from bs4 import BeautifulSoup
 from constants import Constants
 import re
-import testing
 import logging
-import updating
+
 
 logging.basicConfig(format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
                     level=logging.INFO)
@@ -73,7 +72,7 @@ def parse_error_links(knowledge_pages):
         try:
             html = urllib.request.urlopen(page).read()
         except error.URLError:
-            logger.warning('page isn\'t access: ' + page)
+            logger.info('page isn\'t access: ' + page)
         if html is None:
             return
         html_page = BeautifulSoup(html, 'html.parser')

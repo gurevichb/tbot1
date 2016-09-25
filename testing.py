@@ -1,5 +1,5 @@
 import parsing
-import logger
+import loggerdel
 debug_links_knowledge = ['http://developer.rutoken.ru/display/KB/CP1001',
                          'http://developer.rutoken.ru/display/KB/CP1002',
                          'http://developer.rutoken.ru/display/KB/CP1003',
@@ -48,14 +48,14 @@ debug_error_links = ['http://developer.rutoken.ru/display/KB/PU1012',   # 0x6400
                      'http://developer.rutoken.ru/display/KB/RD1003',   # -536870387
                      'http://developer.rutoken.ru/display/KB/RD1004',   # 1060
                      'http://developer.rutoken.ru/display/KB/RD1006',   # 1053
-                     'http://developer.rutoken.ru/display/KB/RD1007',
-                     'http://developer.rutoken.ru/display/KB/RD1009',   # 2
+                     'http://developer.rutoken.ru/display/KB/RD1007',   # 5
+                     'http://developer.rutoken.ru/display/KB/RD1009',   # 259
                      'http://developer.rutoken.ru/display/KB/RD1012']   # 1223
 
 
 def main():
     for entity in parsing.search_in_page('6'):
-        logger.debug(entity)
+        loggerdel.debug(entity)
 
 
 if __name__ == "__main__":
