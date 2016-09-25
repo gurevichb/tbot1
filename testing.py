@@ -1,5 +1,4 @@
 import parsing
-import loggerdel
 debug_links_knowledge = ['http://developer.rutoken.ru/display/KB/CP1001',
                          'http://developer.rutoken.ru/display/KB/CP1002',
                          'http://developer.rutoken.ru/display/KB/CP1003',
