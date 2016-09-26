@@ -108,3 +108,48 @@ def search_in_page(error_code, error_links):
     for list in list_of_names_and_links: logger.info(str(list))
     logger.info('Search is finished')
     return list_of_names_and_links
+
+
+def search_tags(knowledge_pages):
+    list_of_link_with_tags = []
+    for url in knowledge_pages:
+        link_with_tags = []
+        try:
+            html = urllib.request.urlopen(url).read()
+        except error.HTTPError:
+            logger.info('HTTP Error 404 in: ' + url)
+            continue
+        soup = BeautifulSoup(html, 'html.parser')
+        link_with_tags.append(url)
+
+        for tag in soup.find_all('a', class_='aui-label-split-main'):
+            link_with_tags.append(tag.text)
+        list_of_link_with_tags.append(link_with_tags)
+    for link in list_of_link_with_tags:
+        logger.info('add tags: \n' + str(link))
+    return list_of_link_with_tags
+
+
+priority1 = [] # Полное совпадение введенных тегов и тегов со страниц сайтов. Список таких сайтов
+priority2 = [] # Частичное совпадение
+def sort_tags(list_of_input_tags, link_with_tags):
+    '''
+    Принимает входящие теги и теги со страницы формирует списки priopity1, priority2
+    '''
+    list_of_fit_tag = [] # совпадающие теги
+    for input_tag in list_of_input_tags:
+        for out_tag in link_with_tags[1:]:
+            if out_tag == input_tag:
+                list_of_fit_tag.append(input_tag)
+    if len(list_of_fit_tag) == 0:
+        return
+    if len(list_of_fit_tag) == len(link_with_tags[1:]):
+        if len(list_of_fit_tag) == len(list_of_input_tags):
+            priority1.append(link_with_tags[0]) # добавили ссылку полное совпадение тегов
+        else:
+            link_and_fit_tags = [link_with_tags[0]]
+            link_and_fit_tags.extend(list_of_fit_tag)
+            priority2.append(link_and_fit_tags)
+
+
+
