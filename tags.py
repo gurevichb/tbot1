@@ -13,12 +13,14 @@ def equals_tags(list_of_input_tags, link_with_tags):
         for out_tag in link_with_tags[1:]:
             if out_tag == input_tag:
                 equals_number += 1
+    if equals_number >= 1:
+        list_list_link_eq_div.append(link_with_tags)
+        list_list_link_eq_div.append(equals_number)
+        list_list_link_eq_div.append(len(link_with_tags[1:]) - equals_number)
+        return list_list_link_eq_div
+   # else:
+     #   return None
 
-    list_list_link_eq_div.append(link_with_tags)
-    list_list_link_eq_div.append(equals_number)
-    list_list_link_eq_div.append(len(link_with_tags[1:]) - equals_number)
-
-    return list_list_link_eq_div
 
 
 def list_link_eq_div(input_tag, link_and_tags):
@@ -33,10 +35,11 @@ def list_link_eq_div(input_tag, link_and_tags):
 
 def sort_tags(full_list):
     """
-    Сортирует список сначало по количеству совпадений (по позрастанию).
+    Сортирует список сначало по количеству совпадений тегов (по позрастанию).
     Генерируются подсписки по количеству совпадений,
     внутри них сортировка по количеству расхождений (по убыванию)
     """
+    full_list = list(filter(None, full_list))
     full_list.sort(key=sort_col, reverse=True)
     new_list = []
     temp_list = []
@@ -73,13 +76,13 @@ def get_len(len, list):
     return result_list
 
 
-def get(input_tags):
-    return get_len(6, sort_tags(list_link_eq_div(input_tags, testing.debug_link_and_tags)))
+def get(input_tags, links_and_tags):
+    return get_len(6, sort_tags(list_link_eq_div(input_tags, links_and_tags)))
 
 
 def main():
-    input = ['kb-troubleshooting-article', 'егаис']
-    print(get(input))
+    input = ['kb-troubleshooting-article']
+    print(get(input, testing.debug_link_and_tags))
 
 
 if __name__ == '__main__':

@@ -1,17 +1,20 @@
+import threading
+
 from telegram import ReplyKeyboardMarkup, InlineKeyboardButton, InlineKeyboardMarkup, ReplyKeyboardHide
 from telegram.ext import (Updater, CommandHandler, RegexHandler,
                           ConversationHandler, CallbackQueryHandler)
 from constants import Constants
 import logging
 import parsing
-import threading
+import tags
+import testing
 from updating import UpdateData
 
 logging.basicConfig(format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
                     level=logging.INFO)
 logger = logging.getLogger(__name__)
 
-CONTACTS, FAQ, ERROR = range(3)
+CONTACTS, FAQ, ERROR, QUESTION = range(4)
 update_data = UpdateData()
 
 
@@ -95,12 +98,42 @@ def contacts_reach_handler(bot, update):
                      parse_mode='Markdown')
 
 
+def question_handler(bot, update):
+    logger.info('question')
+    bot.sendMessage(chat_id=update.message.chat_id, text='Введите теги:',
+                    reply_markup=ReplyKeyboardHide())
+    return QUESTION
+
+
+def question_handler_cycle(bot, update):
+    logger.info(update.message.text.split())
+    try:
+        inline_question_keyboard = [[]]
+        for record in tags.get(update.message.text.split(), testing.debug_link_and_tags):
+            name_article = str(str(record[0][-6:]) + ' ')
+            inline_question_keyboard.append(
+                [InlineKeyboardButton(text=str(name_article + str(record[1:])[1:-1]),
+                                                                  url=record[0])])
+        links_markup = InlineKeyboardMarkup(inline_question_keyboard)
+        bot.send_message(update.message.chat_id, text='Повторить?',
+                         reply_markup=ReplyKeyboardMarkup([['Повторить', 'Назад']], resize_keyboard=True))
+
+        bot.sendMessage(update.message.chat_id, text='Найдено:', reply_markup=links_markup, resize_keyboard=False)
+        logger.info(tags.get(update.message.text.split(), testing.debug_link_and_tags))
+        return QUESTION
+    except IndexError:
+        bot.send_message(update.message.chat_id, text='Не найдено, повторить?',
+                         reply_markup=ReplyKeyboardMarkup([['Повторить', 'Назад']], resize_keyboard=True))
+
+    return QUESTION
+
+
 def main():
     updater = Updater(Constants.token)
 
     dp = updater.dispatcher
 
-    t2 = threading.Thread(target=update_data.update, args=[60])
+    t2 = threading.Thread(target=update_data.update, args=[60*30])
     t2.setDaemon(True)
     t2.start()
 
@@ -109,7 +142,8 @@ def main():
                       RegexHandler(Constants.faq_button, faq_handler),
                       CallbackQueryHandler(callback_faq),
                       RegexHandler(Constants.error_button, error_code_handler),
-                      RegexHandler(Constants.contacts_button, contacts_handler)],
+                      RegexHandler(Constants.contacts_button, contacts_handler),
+                      RegexHandler(Constants.questions_button, question_handler)],
 
         states={
 
@@ -118,7 +152,10 @@ def main():
                     RegexHandler('.{0,10}', error_handler_cycle)],
             CONTACTS: [RegexHandler(Constants.contact_back_button, start),
                        RegexHandler(Constants.contact_address_button, contacts_handler),
-                       RegexHandler(Constants.contact_reach_button, contacts_reach_handler)]
+                       RegexHandler(Constants.contact_reach_button, contacts_reach_handler)],
+            QUESTION: [RegexHandler(Constants.contact_back_button, start),
+                       RegexHandler('Повторить', question_handler),
+                       RegexHandler('.{0,10}', question_handler_cycle)]
         },
         allow_reentry=True,
 
@@ -126,6 +163,7 @@ def main():
     )
     dp.add_handler(conv_handler)
     updater.start_polling()
+
 
 if __name__ == '__main__':
     main()

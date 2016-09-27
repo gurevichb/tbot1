@@ -128,7 +128,3 @@ def search_tags(knowledge_pages):
     for link in list_of_link_with_tags:
         logger.info('add tags: \n' + str(link))
     return list_of_link_with_tags
-
-
-priority1 = [] # Полное совпадение введенных тегов и тегов со страниц сайтов. Список таких сайтов
-priority2 = [] # Частичное совпадение
