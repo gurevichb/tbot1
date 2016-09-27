@@ -97,8 +97,9 @@ debug_link_and_tags = [['http://developer.rutoken.ru/display/KB/CP1001'],
 
 
 def main():
-    test_tags1()
+    #test_tags1()
     #test_tags2()
+    test_equals_tag()
 
 def test_tags1():
     # [15]:  ['http://developer.rutoken.ru/display/KB/PU1003', 'kb-troubleshooting-article', 'егаис']
@@ -112,7 +113,7 @@ def test_tags1():
         parsing.sort_tags(['kb-troubleshooting-article', 'егаис', 'tag3'], debug)
     list_of_len = []
     for unit in parsing.priority2:
-        list_of_len.append(len(unit))
+        list_of_len.append(len(unit) - 1)
     print('priority2: ' + str(parsing.priority2))
     print(list_of_len)
 
@@ -135,9 +136,31 @@ def test_tags2():
     parsing.priority1 = []
     input = ['kb-troubleshooting-article', '536870387', 'winscard']
     for debug in debug_link_and_tags:
+        print(debug)
         parsing.sort_tags(input, debug)
     parsing.priority1.append(input)
     print('priority1: ' + str(parsing.priority1))
 
+
+def test_equals_tag():
+    list1 = []
+    input = ['kb-troubleshooting-article', 'егаис']
+    print(parsing.equals_tags(['kb-troubleshooting-article', 'егаис','A','C'], debug_link_and_tags[15]))
+    print(parsing.equals_tags(input, debug_link_and_tags[1]))
+
+    for debug in debug_link_and_tags:
+        list1.append(parsing.equals_tags(input, debug))
+    for unit in list1:
+        print(unit)
+    list1.sort(key=sort_col, reverse=True)
+    print('sort')
+    for unit in list1:
+        print(unit)
+    for unit in list1:
+        index = unit[1]
+    parsing.for_sort(list1)
+
+def sort_col(i):
+    return i[1:][0]
 if __name__ == "__main__":
     main()

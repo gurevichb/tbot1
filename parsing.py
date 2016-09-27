@@ -132,24 +132,3 @@ def search_tags(knowledge_pages):
 
 priority1 = [] # Полное совпадение введенных тегов и тегов со страниц сайтов. Список таких сайтов
 priority2 = [] # Частичное совпадение
-def sort_tags(list_of_input_tags, link_with_tags):
-    '''
-    Принимает входящие теги и теги со страницы формирует списки priopity1, priority2
-    '''
-    list_of_fit_tag = [] # совпадающие теги
-    for input_tag in list_of_input_tags:
-        for out_tag in link_with_tags[1:]:
-            if out_tag == input_tag:
-                list_of_fit_tag.append(input_tag)
-    if len(list_of_fit_tag) == 0:
-        return
-    if len(list_of_fit_tag) == len(link_with_tags[1:]):
-        if len(list_of_fit_tag) == len(list_of_input_tags):
-            priority1.append(link_with_tags[0]) # добавили ссылку полное совпадение тегов
-        else:
-            link_and_fit_tags = [link_with_tags[0]]
-            link_and_fit_tags.extend(list_of_fit_tag)
-            priority2.append(link_and_fit_tags)
-
-
-
