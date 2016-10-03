@@ -1,7 +1,3 @@
-import testing
-import updating
-
-
 def equals_tags(list_of_input_tags, link_with_tags):
     '''
     Формируется список
@@ -18,9 +14,6 @@ def equals_tags(list_of_input_tags, link_with_tags):
         list_list_link_eq_div.append(equals_number)
         list_list_link_eq_div.append(len(link_with_tags[1:]) - equals_number)
         return list_list_link_eq_div
-   # else:
-     #   return None
-
 
 
 def list_link_eq_div(input_tag, link_and_tags):
@@ -81,8 +74,7 @@ def get(input_tags, links_and_tags):
 
 
 def main():
-    input = ['kb-troubleshooting-article']
-    print(get(input, testing.debug_link_and_tags))
+    pass
 
 
 if __name__ == '__main__':

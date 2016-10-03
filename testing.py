@@ -118,29 +118,6 @@ def test_tags1():
     print(list_of_len)
 
 
-def test_tags2():
-    # Priority1 содержит список ссылок из которых все полностью соответствуют заданным тегам,
-    # сами теги не входят в Priority1 нужно добавить их отдельно (для вывода)
-    input = ['kb-troubleshooting-article']
-    for debug in debug_link_and_tags:
-        parsing.sort_tags(input, debug)
-    parsing.priority1.append(input) #
-    print('priority1: ' + str(parsing.priority1))
-
-
-    for debug in debug_link_and_tags:
-        parsing.sort_tags(['логи'], debug)
-    print('priority1: ' + str(parsing.priority1))
-
-
-    parsing.priority1 = []
-    input = ['kb-troubleshooting-article', '536870387', 'winscard']
-    for debug in debug_link_and_tags:
-        print(debug)
-        parsing.sort_tags(input, debug)
-    parsing.priority1.append(input)
-    print('priority1: ' + str(parsing.priority1))
-
 
 def test_equals_tag():
     list1 = []

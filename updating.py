@@ -1,21 +1,19 @@
-import threading
 import time
 import parsing
-import testing
 import logging
+
 logging.basicConfig(format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
                     level=logging.INFO)
 logger = logging.getLogger(__name__)
+
+
 class UpdateData:
     __faq_list = []
     __contacts_text = []
     __contacts_how_reach = ''
     __knowledge_links = []
     __knowledge_error_links = []
-
-    def __init__(self):
-        pass
-       # self.update()
+    __links_with_tags = []
 
     def update(self, update_time):
         while True:
@@ -27,7 +25,7 @@ class UpdateData:
             # 20 seconds
             self.__knowledge_error_links = parsing.parse_error_links(self.__knowledge_links)
             #
-            self.__knowledge_error_links = testing.debug_error_links
+            self.__links_with_tags = parsing.search_tags(self.__knowledge_links)
             logger.info('updating has ended')
             time.sleep(update_time)
 
@@ -45,3 +43,6 @@ class UpdateData:
 
     def get_knowledge_error_links(self):
         return self.__knowledge_error_links
+
+    def get_links_with_tags(self):
+        return self.__links_with_tags

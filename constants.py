@@ -14,6 +14,3 @@ class Constants:
     contact_address_button = 'Адрес'
     contact_reach_button = 'Как добраться'
     contact_back_button = 'Назад'
-    # pages
-    knowledge_pages = []
-    knowledge_error_pages = []
